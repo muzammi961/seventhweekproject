@@ -5,10 +5,17 @@ from adminuser.models import ProductData
 
 class Cart(models.Model):
     user=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
-    
- 
 class ItemCart(models.Model):
     cart=models.ForeignKey(Cart,on_delete=models.CASCADE)
     product=models.ForeignKey(ProductData,on_delete=models.CASCADE)
     quantity=models.IntegerField(default=1)
+    
+    
+    
+class WishListUser(models.Model):
+    user=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
+class WishList(models.Model):
+    wishuser=models.ForeignKey(WishListUser,on_delete=models.CASCADE)
+    product=models.ForeignKey(ProductData,on_delete=models.CASCADE)
+        
         

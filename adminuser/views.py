@@ -61,7 +61,7 @@ class DeleteaProduct(APIView):
       data.delete()
     except:
       return Response(status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_200_OK)
+    return Response({'message': 'Product deleted successfully','data':ProductSerializer(data).data},status=status.HTTP_200_OK)
               
               
 class UpdateProductView(APIView):
@@ -71,7 +71,6 @@ class UpdateProductView(APIView):
             product = ProductData.objects.get(pk=pk)
         except ProductData.DoesNotExist:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             updated = serializer.save()
