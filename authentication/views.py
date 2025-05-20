@@ -1,6 +1,6 @@
 from tokenize import TokenError
 from django.shortcuts import render
-from .serializer import ChangePasswordSerializer, RegisterUserSerializer,LoginSerializers
+from .serializer import ChangePasswordSerializer, RegisterUserSerializer,LoginSerializers,PasswordResetRequestSerializer,OTPVerificationSerializer,PasswordResetSerializer
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -75,6 +75,28 @@ class   ChangePasswordAPIView(APIView) :
             
             
             
-# class Grtpassword(APIView):
-#     def get(self,request):
+class PasswordResetRequest(APIView):
+    def post(self,request):
+      print(request.data)
+      serializer=PasswordResetRequestSerializer(data=request.data)
+      if serializer.is_valid():
+          return Response({"message":"OTP  Verified"},status=status.HTTP_200_OK)
+      return Response(status=status.HTTP_400_BAD_REQUEST)
+  
+  
+class OTPVerificationView(APIView):
+    def post(self, request):
+        serializer = OTPVerificationSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({"message": "OTP verified."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
                      
+                     
+
+class PasswordResetView(APIView):
+    def post(self,request):
+        serializer=PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message':"Password reset successfull."},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
