@@ -10,6 +10,9 @@ from rest_framework import status
 from django.http import Http404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from orders.serialaizer  import OrderDetileserializer
+from orders.models import Orderitem,Orderusre      
+from adminuser.serializer import ProductSerializer  
 # Create your views here.
 
 class AdminViewallUser(APIView):
@@ -110,10 +113,8 @@ class PaginationApiview(APIView):
         result_page = paginator.paginate_queryset(productdata, request)
         serializer = ProductSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data) 
-
-from orders.serialaizer  import OrderDetileserializer
-from orders.models import Orderitem,Orderusre      
-from adminuser.serializer import ProductSerializer      
+      
+    
 class OrderDetails(APIView):
      def get(self,request):
         order_details=Orderitem.objects.select_related('user_forin','product').all()
