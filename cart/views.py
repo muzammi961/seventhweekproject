@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from adminuser.models import ProductData
+from authentication.models import CustomUser      
+from rest_framework.permissions import AllowAny
 
 
-from .serialaizer import WishListSerialaizer
+from .serialaizer import WishListSerialaizer,ItemCartSerialaizer,WishListSerialaizer
 from rest_framework.views import APIView
 from .models import Cart,ItemCart,WishList,WishListUser
 from rest_framework import status
@@ -59,3 +61,45 @@ class AddProductWishlist(APIView):
         else :
           message2="Product already in wishlist"
         return Response({'message1': message1,'message2': message2,'wishlist': WishListSerialaizer(wishlist_item).data}, status=status.HTTP_201_CREATED if created_wishlist else status.HTTP_200_OK)
+      
+
+      
+class CartViewByUser(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user = request.user
+        try:
+            userobj = CustomUser.objects.get(username=user)
+            print("User:", userobj.username)
+        except CustomUser.DoesNotExist:
+            return Response({"message": 'user does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            obj2 = ItemCart.objects.select_related('product').filter(cart__user=userobj)
+            for i in obj2:
+                print(i.id, i.product.productname)
+            serializer = ItemCartSerialaizer(obj2, many=True)
+        except ItemCart.DoesNotExist:
+            return Response({'message': 'ItemCart does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)  
+      
+      
+class WishListViewByUser(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user = request.user
+        try:
+            userobj = CustomUser.objects.get(username=user)
+            print("User:", userobj.username)
+        except CustomUser.DoesNotExist:
+            return Response({"message": 'user does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            obj2 = WishList.objects.select_related('product').filter(wishuser__user=userobj)
+            for i in obj2:
+                print(i.id, i.product.productname)
+            serializer = WishListSerialaizer(obj2, many=True)
+        except ItemCart.DoesNotExist:
+            return Response({'message': 'ItemCart does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)  
+            

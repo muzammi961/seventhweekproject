@@ -9,4 +9,4 @@ class ProductData(models.Model):
     offer_price = models.IntegerField(default=0)
     size=models.IntegerField()
     item_photo = models.ImageField(upload_to='menu_photo/', blank=True, null=True)
-    category=models.ForeignKey(Category_Gender,on_delete=models.CASCADE)
+    category_name=models.ForeignKey(Category_Gender,on_delete=models.CASCADE)

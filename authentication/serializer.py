@@ -6,6 +6,14 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import authenticate
 from .models import CustomUser
+
+
+class CustomUserSerializer(ModelSerializer):
+    class Meta:
+        model = CustomUser  
+        fields = ['username', 'email']
+        
+        
 class RegisterUserSerializer(ModelSerializer):
        password_two=serializers.CharField()
        class Meta:
@@ -16,10 +24,10 @@ class RegisterUserSerializer(ModelSerializer):
               if data['password'] != data['password_two']:
                   raise serializers.ValidationError('password does not match')
               return data
-       def create(self, validated_data):
-              validated_data.pop('password_two')
-              validated_data['password']=make_password(validated_data['password'])
-              return CustomUser.objects.create(**validated_data)
+    #    def create(self, validated_data):
+    #           validated_data.pop('password_two')
+    #           validated_data['password']=make_password(validated_data['password'])
+    #           return CustomUser.objects.create(**validated_data)
           
           
 class LoginSerializers(serializers.Serializer):
@@ -43,6 +51,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     def validate_email(self, value):
+        print(value)
         try:
             user = CustomUser.objects.get(email=value)
         except CustomUser.DoesNotExist:
@@ -53,7 +62,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             send_mail(
                 subject="Password Reset OTP ....",
                 message=f"Your OTP is for password reset :: {user.otp}",
-                from_email="muzammil2332005@gmail.com.....",
+                from_email="muzammil2332005@gmail.com",
                 recipient_list=[user.email],
                 fail_silently=False,
             )
@@ -88,22 +97,23 @@ class PasswordResetSerializer(serializers.Serializer):
     password=serializers.CharField()
     conform_password=serializers.CharField()
 
-    def validata(self,data):
+    def validate(self,data):
         if data['password'] != data['conform_password']:
            raise serializers.ValidationError('password does not match ..')
         try:
             user=CustomUser.objects.get(email=data['email'])
+            print('it is the user name and otp',user)
             if not user.otp_varified:
                 raise serializers.ValidationError({"otp":"OTP Verification Required."})
             
         except CustomUser.DoesNotExist:     
              raise  serializers.ValidationError({"email":"email is not found..."})
         return data
-    def save(self,**_data):
-        user=CustomUser.objects.get(email=self.validated_data['email'])
-        user.set_password(self.validated_data['password'])
-        user.otp=None
-        user.otp_expiration=None
-        user.otp_varified=False
-        user.save()
-        return user
+    # def save(self,**_data):
+    #     user=CustomUser.objects.get(email=self.validated_data['email'])
+    #     user.set_password(self.validated_data['password'])
+    #     user.otp=None
+    #     user.otp_expiration=None
+    #     user.otp_varified=False
+    #     user.save()
+    #     return user

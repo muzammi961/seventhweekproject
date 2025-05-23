@@ -17,5 +17,5 @@ class WishListUser(models.Model):
 class WishList(models.Model):
     wishuser=models.ForeignKey(WishListUser,on_delete=models.CASCADE)
     product=models.ForeignKey(ProductData,on_delete=models.CASCADE)
-        
+   
         

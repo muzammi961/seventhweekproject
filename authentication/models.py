@@ -8,6 +8,8 @@ class CustomUser(AbstractUser):
     username=models.CharField(max_length=100,unique=True)
     email=models.EmailField(max_length=100,unique=True)
     
+
+   
     otp=models.IntegerField(null=True,blank=True)
     otp_expiration=models.DateTimeField(blank=True,null=True) 
     otp_varified=models. BooleanField(default=False)
@@ -21,5 +23,3 @@ class CustomUser(AbstractUser):
         self.otp_expiration=timezone.now()+timedelta(minutes=5)
         self.otp_varified=False
         self.save()
-   
-       
