@@ -5,7 +5,6 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from authentication.models import CustomUser
 from rest_framework.response import Response
 from .models import ProductData,Category_Gender
-from django.db.models import F
 from rest_framework import status
 from django.http import Http404
 from rest_framework.pagination import PageNumberPagination
