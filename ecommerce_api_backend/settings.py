@@ -58,7 +58,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+CORS_ALLOW_ALL_ORIGINS = True 
 
 ROOT_URLCONF = 'ecommerce_api_backend.urls'
 
@@ -192,3 +194,25 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'muzammil2332005@gmail.com'  # Replace with your email
 EMAIL_HOST_PASSWORD = 'wgeo dwco bemg eide'  # Replace with your email password or app-specific password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+
+
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
+
+
+
+
+
+
+
+RAZORPAY_KEY_ID="rzp_test_VYiv6q9vw6vBQa"
+RAZORPAY_SECRET_KEY="v8jmR1sIaBVbwe7n4f9XJoU5"
+
+
+# RAZORPAY_KEY_ID = "rzp_test_VYiv6q9vw6vBQa"
+# RAZORPAY_KEY_SECRET = "v8jmR1sIaBVbwe7n4f9XJoU5"

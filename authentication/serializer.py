@@ -11,8 +11,7 @@ from .models import CustomUser
 class CustomUserSerializer(ModelSerializer):
     class Meta:
         model = CustomUser  
-        fields = ['username', 'email']
-        
+        fields = ['id','username', 'email']
         
 class RegisterUserSerializer(ModelSerializer):
        password_two=serializers.CharField()
@@ -21,8 +20,16 @@ class RegisterUserSerializer(ModelSerializer):
         fields = ['username', 'email', 'password', 'password_two'] 
        
        def validate(self,data):
+              if not data['username']:
+                  raise serializers.ValidationError({'username':'username is required'})
               if data['password'] != data['password_two']:
-                  raise serializers.ValidationError('password does not match')
+                  raise serializers.ValidationError({'password':'password does not match...'})
+              
+              if CustomUser.objects.filter(username=data['username']).exists():
+                  raise serializers.ValidationError({'username':'username already exists...'})
+              
+              if CustomUser.objects.filter(email=data['email']).exists():
+                  raise serializers.ValidationError({'email':'email already exists.... '})
               return data
     #    def create(self, validated_data):
     #           validated_data.pop('password_two')
@@ -51,7 +58,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     def validate_email(self, value):
-        print(value)
+        print('value',value)
         try:
             user = CustomUser.objects.get(email=value)
         except CustomUser.DoesNotExist:

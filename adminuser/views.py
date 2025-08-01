@@ -3,18 +3,21 @@ from rest_framework.views import APIView
 from .serializer import AdminViewallUserSerializer,ProductSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from authentication.models import CustomUser
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-from .models import ProductData,Category_Gender
+from .models import ProductData,Category_Product
 from rest_framework import status
 from django.http import Http404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from orders.serialaizer  import OrderDetileserializer
 from orders.models import Orderitem,Orderusre      
-from adminuser.serializer import ProductSerializer  
+from adminuser.serializer import ProductSerializer,CategorySerializer 
+from authentication.serializer import CustomUserSerializer
 # Create your views here.
 
 class AdminViewallUser(APIView):
+  permission_classes=[IsAdminUser]
   def get(self,request):
       user_data=CustomUser.objects.all()
       serializer=AdminViewallUserSerializer(user_data,many=True)
@@ -22,7 +25,7 @@ class AdminViewallUser(APIView):
       return Response(serializer.data,status=status.HTTP_200_OK)
   
 class ViewSpecificUserDetails(APIView):
-   
+    permission_classes=[IsAdminUser]
     def get(self,request,pk):
         try:
           user_data=CustomUser.objects.get(pk=pk)
@@ -33,6 +36,7 @@ class ViewSpecificUserDetails(APIView):
     
 
 class CreateProductView(APIView):
+    # permission_classes=[IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -44,7 +48,7 @@ class CreateProductView(APIView):
             #   print(instence.id)
             # except Category_Gender.DoesNotExist:
             #   return Response({'error': 'Category not found.'}, status=status.HTTP_404_NOT_FOUND)
-            ProductData.objects.create(productname=from_user_data['productname'],price=from_user_data['price'],offer_price=from_user_data['offer_price'],size=from_user_data['size'],item_photo=from_user_data['item_photo'],category_name=from_user_data['category_name'])
+            ProductData.objects.create(productname=from_user_data['productname'],price=from_user_data['price'],offer_price=from_user_data['offer_price'],item_photo=from_user_data['item_photo'],category_name=from_user_data['category_name'])
             # product = serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         else:  
@@ -53,6 +57,7 @@ class CreateProductView(APIView):
 
       
 class GetallProducts(APIView):
+  permission_classes=[IsAdminUser]
   def get(self,request):
         data=ProductData.objects.all()
         serializer=ProductSerializer(data,many=True)
@@ -61,8 +66,13 @@ class GetallProducts(APIView):
       
 
 class ViewAllProductbyCategory(APIView):
+    permission_classes=[IsAdminUser]
     def get(self, request, valuebycategory):
-        products = ProductData.objects.filter(category__name=valuebycategory)
+        try:
+           products = ProductData.objects.filter(category_name__name=valuebycategory)
+        except ProductData.DoesNotExist:
+          return Response({'message':'data does noe existed....'},status=status.HTTP_400_BAD_REQUEST)
+        print('productss   ....',products)
         if products.exists():
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -71,6 +81,7 @@ class ViewAllProductbyCategory(APIView):
           
           
 class DeleteaProduct(APIView):
+  permission_classes=[IsAdminUser]
   def delete(self,request,pk):
     try:
       data=ProductData.objects.get(pk=pk)
@@ -81,7 +92,7 @@ class DeleteaProduct(APIView):
               
 class UpdateProductView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-
+    # permission_classes=[IsAdminUser]
     def put(self, request, pk):
         try:
             product = ProductData.objects.get(pk=pk)
@@ -91,10 +102,10 @@ class UpdateProductView(APIView):
         serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
+            print(data)
             product.productname = data.get('productname')
             product.price = data.get('price')
             product.offer_price = data.get('offer_price')
-            product.size = data.get('size')
             product.item_photo = data.get('item_photo')
             product.category_name = data.get('category_name')
             product.save()
@@ -105,6 +116,7 @@ class UpdateProductView(APIView):
       
 
 class PaginationApiview(APIView):
+    permission_classes=[IsAdminUser]
     def get(self, request, format=None):
         productdata =ProductData.objects.all()
         paginator = PageNumberPagination()
@@ -114,8 +126,149 @@ class PaginationApiview(APIView):
         return paginator.get_paginated_response(serializer.data) 
       
     
+# class OrderDetails(APIView):
+#      permission_classes=[IsAdminUser]
+#      def get(self,request):
+#         order_details=Orderitem.objects.select_related('user_forin','product',).all()
+#         print('order deltails .....',order_details)
+#         serializer=OrderDetileserializer(order_details,many=True)
+#         return Response(serializer.data,status=status.HTTP_200_OK)
+#       return Response({'message':'data does not get'},status=status.HTTP_400_BAD_REQUEST)   
+      
 class OrderDetails(APIView):
-     def get(self,request):
-        order_details=Orderitem.objects.select_related('user_forin','product').all()
-        serializer=OrderDetileserializer(order_details,many=True)
-        return Response(serializer.data,status=status.HTTP_302_FOUND)   
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            order_details = Orderitem.objects.select_related('user_forin', 'product').all()
+            print('Order details:', order_details)
+            serializer = OrderDetileserializer(order_details, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("Error fetching data:", e)
+            return Response({'message': 'Data could not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)      
+      
+      
+      
+      
+class GetallCategory(APIView):
+  permission_classes=[IsAdminUser]
+  def get(self,request):
+    try:
+      getcategory=Category_Product.objects.all()
+      serializer=CategorySerializer(getcategory,many=True)
+    except Category_Product.DoesNotExist:
+      return Response({'message':'category does not existe.....'},status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.data,status=status.HTTP_200_OK)      
+  
+  
+class GetSpecificProduct(APIView):
+   permission_classes=[IsAdminUser]
+   def get(self,request,pk):
+     try:
+       get_data=ProductData.objects.get(id=pk) 
+       print('get data',get_data)
+       serializer=ProductSerializer(get_data)
+     except ProductData.DoesNotExist:
+       return Response({'message':'data does not existed..'},status=status.HTTP_400_BAD_REQUEST)
+     return Response(serializer.data,status=status.HTTP_200_OK)
+   
+   
+class CreateCategory(APIView):
+  permission_classes=[IsAdminUser]
+  def post(self,request):
+      serializer=CategorySerializer(data=request.data)
+      if serializer.is_valid():
+        data=serializer.validated_data
+        Category_Product.objects.create(name=data['name'])
+        return Response({'message':'category posted ...'},status=status.HTTP_200_OK)
+      return Response({'message':'data does not existed....'},status=status.HTTP_400_BAD_REQUEST) 
+              
+              
+              
+class DeleteCategory(APIView):
+  permission_classes=[IsAdminUser]
+  def delete(self,request,pk):
+      try:
+        obj=Category_Product.objects.get(id=pk)
+        obj.delete()
+      except Category_Product.DoesNotExist:
+        return Response({'message':'category does not get....!'})  
+      return Response({'message':'category deleted successfully....!'})
+    
+    
+class UpdateCategory(APIView):
+   permission_classes=[IsAdminUser]
+   def put(self,request,pk):
+     try:
+      obj=Category_Product.objects.get(id=pk)
+     except Category_Product.DoesNotExist:
+       return Response({'message':'category does not exist....!'})
+     serializer=CategorySerializer(obj,data=request.data)
+     if serializer.is_valid():
+        data=serializer.validated_data
+        Category_Product.objects.filter(id=pk).update(name=data.get('name'))
+        return Response({'message':'category changed successfully...!'}) 
+     return Response({'message':'category does not change.....'})                
+            
+            
+            
+class Updateuserdata(APIView):
+    permission_classes=[IsAdminUser]
+    def put(self,request,pk):
+      try:
+        obj=CustomUser.objects.get(id=pk)        
+      except CustomUser.DoesNotExist:
+        return Response({'message':'does not exist the user....!'}) 
+      serializer=CustomUserSerializer(obj,data=request.data)
+      if serializer.is_valid():
+        data=serializer.validated_data
+        CustomUser.objects.filter(id=pk).update(username=data.get('username'),email=data.get('email')) 
+        return Response({'message':"user data has been changeing ...!"})
+      return Response({'message':'could not update user datas....!'})
+    
+class Deleteuserdata(APIView):
+  permission_classes=[IsAdminUser]
+  def delete(self,request,pk):
+    try:
+      obj=CustomUser.objects.get(id=pk) 
+      obj.delete()
+    except CustomUser.DoesNotExist:
+      return Response({'message':'user does not exist in this id...!'})
+    return Response({'message':'data successfully destroyd ...!'})     
+  
+  
+  
+  
+class OrderDetailsBYuser(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request, pk):
+        try:
+            obj = Orderusre.objects.get(user__id=pk)
+            print('Orderusre object:', obj)
+        except Orderusre.DoesNotExist:
+            return Response({'message': 'User does not exist...'}, status=status.HTTP_404_NOT_FOUND)
+        data = Orderitem.objects.select_related('product').filter(user_forin=obj)
+        print('Order items:', data)
+        serializer = OrderDetileserializer(data, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+  
+from orders.serialaizer import UseraddressSerializer  
+from  orders.models import Useraddressuser,Useraddress
+
+
+class GetAddressBYUser(APIView):
+  permission_classes=[IsAdminUser]
+  def get(self,request,pk):
+    try:
+      obj=Useraddressuser.objects.get(username__id=pk)
+      print('user address id ',obj)
+    except Useraddressuser.DoesNotExist:
+      return Response({'message':'user address did not find..'}) 
+    data=Useraddress.objects.filter(adduser=obj)
+    print('order items   ...',data)
+    serializer=UseraddressSerializer(data,many=True)
+    return Response(serializer.data,status=status.HTTP_200_OK)
+  
+  
+  

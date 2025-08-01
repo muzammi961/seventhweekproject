@@ -13,4 +13,14 @@ class Orderitem(models.Model):
     ordered_at = models.DateTimeField(auto_now_add=True)
 
 
-                                                            
+class Useraddressuser(models.Model):
+    username=models.OneToOneField(CustomUser,on_delete=models.CASCADE)                                                                                                                                                                     
+class Useraddress(models.Model):
+    nameofuser=models.CharField(max_length=100)
+    phonenumber=models.BigIntegerField()
+    pincode=models.IntegerField()
+    state=models.CharField(max_length=100)
+    city=models.CharField(max_length=100)
+    houseno_buildingname=models.CharField(max_length=100)
+    Roadname=models.CharField(max_length=100)
+    adduser=models.OneToOneField(Useraddressuser,on_delete=models.CASCADE)

@@ -9,14 +9,17 @@ from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from .models import CustomUser
-# Create your views here.
+# Create your views fhere.
 
 class UserRegisteration(APIView):
     permission_classes=[AllowAny]
     def post(self,request):
+        # print('from post ....')
+        # print(request.data)
         serializer=RegisterUserSerializer(data=request.data)
         if serializer.is_valid():
            data=serializer.validated_data
+           print(serializer)
            data.pop('password_two')
            data['password']=make_password(data['password'])
            CustomUser.objects.create(username=data['username'],email=data['email'],password=data['password']) 
@@ -30,16 +33,20 @@ class UserLogin(APIView):
 
     def post(self, request):
         serializer = LoginSerializers(data=request.data)
+        
         if serializer.is_valid():
             user = serializer.validated_data.get('user')
             if user.is_superuser:
                 refresh = RefreshToken.for_user(user)
-                return Response({'message': 'Admin logged in successfully.','refresh': str(refresh),'access': str(refresh.access_token)})
+                print('admin login...')
+                return Response({'is_superuser':True ,'message': 'Admin logged in successfully.','refresh': str(refresh),'access': str(refresh.access_token)})
             elif user:
                 refresh = RefreshToken.for_user(user)
+                print(user)
+                print(refresh)
                 return Response({'message': 'User logged in successfully.','refresh': str(refresh),'access': str(refresh.access_token)})
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogout(APIView):
@@ -91,18 +98,16 @@ class PasswordResetRequest(APIView):
       serializer=PasswordResetRequestSerializer(data=request.data)
       if serializer.is_valid():
           return Response({"message":"OTP  Verified"},status=status.HTTP_200_OK)
-      return Response(status=status.HTTP_400_BAD_REQUEST)
-  
+      else:
+          return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
   
 class OTPVerificationView(APIView):
     def post(self, request):
         serializer = OTPVerificationSerializer(data=request.data)
         if serializer.is_valid():
             return Response({"message": "OTP verified."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
-                     
-                     
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+     
 class PasswordResetView(APIView):
     def post(self,request):
         serializer=PasswordResetSerializer(data=request.data)

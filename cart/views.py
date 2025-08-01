@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Q
 from rest_framework.response import Response
 from adminuser.models import ProductData
 from authentication.models import CustomUser      
@@ -76,17 +77,45 @@ class CartViewByUser(APIView):
             return Response({"message": 'user does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             obj2 = ItemCart.objects.select_related('product').filter(cart__user=userobj)
-            for i in obj2:
-                print(i.id, i.product.productname)
+            # for i in obj2:
+                # print(i.id, i.product.productname,i.product.price,i.product.offer_price,i.product.item_photo,i.product.category_name.name)
             serializer = ItemCartSerialaizer(obj2, many=True)
+            print(serializer)
         except ItemCart.DoesNotExist:
             return Response({'message': 'ItemCart does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)  
-      
-      
+    
+
+
+class UpdatetheQuantity(APIView):
+    permission_classes = [IsAuthenticated]
+    def patch(self, request, pk):
+        user = request.user  
+        try:
+            item = ItemCart.objects.get(product_id=pk, cart__user=user)
+        except ItemCart.DoesNotExist:
+            return Response({'message': 'ItemCart not found for this user.'}, status=status.HTTP_404_NOT_FOUND)
+        except ItemCart.MultipleObjectsReturned:
+            return Response({'message': 'Multiple items found. Please check your cart data.'}, status=status.HTTP_400_BAD_REQUEST)
+        quantity = int(request.data.get('quantity', item.quantity))
+        value = request.data.get('value')
+        if value == 'increase':
+            item.quantity = quantity + 1
+        elif value == 'decrease':
+            if quantity > 1:
+                item.quantity = quantity - 1
+            else:
+                return Response({'message': 'Quantity cannot be less than 1'}, status=400)
+        else:
+            return Response({'message': 'Invalid operation'}, status=400)
+        item.save()
+        return Response({'message': 'Quantity updated successfully', 'new_quantity': item.quantity}, status=status.HTTP_200_OK)
+
+
+
+
 class WishListViewByUser(APIView):
     permission_classes = [AllowAny]
-
     def get(self, request):
         user = request.user
         try:
@@ -102,4 +131,30 @@ class WishListViewByUser(APIView):
         except ItemCart.DoesNotExist:
             return Response({'message': 'ItemCart does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)  
+
+class DeletetheWishListOneByOne(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, pk):
+        user = request.user
+        try:
+            userobj = CustomUser.objects.get(username=user.username)
+            print('User:', userobj.username)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            wishlist_item = WishList.objects.get(Q(wishuser__user=userobj) & Q(id=pk))
+            wishlist_item.delete()
+        except WishList.DoesNotExist:
+            return Response({'message': 'Wishlist item does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'message': 'Wishlist item deleted successfully.'}, status=status.HTTP_200_OK)
+            
+            
+            
+# class GetCartOneByOne(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self,request,pk):
+#         user=request.user
+#         try:
+#             username=
             
