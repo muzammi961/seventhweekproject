@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'adminuser',
     'drf_yasg',
-    'storages'
+    'storages',
+    'whitenoise.runserver_nostatic'
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+     'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 CORS_ALLOW_ALL_ORIGINS = True 
 
