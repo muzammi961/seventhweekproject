@@ -31,7 +31,7 @@ class ViewSpecificProduct(APIView):
    
 
 class Viewallproduct(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             values = ProductData.objects.all() # .filter() is optional here
@@ -49,4 +49,4 @@ class GetallCategory(APIView):
       serializer=CategorySerializer(getcategory,many=True)
     except Category_Product.DoesNotExist:
       return Response({'message':'category does not existe.....'},status=status.HTTP_400_BAD_REQUEST)
-    return Response(serializer.data,status=status.HTTP_200_OK)            
+    return Response(serializer.data,status=status.HTTP_200_OK)          

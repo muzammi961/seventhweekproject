@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AdminViewallUser,ViewSpecificUserDetails,CreateProductView,GetallProducts,ViewAllProductbyCategory,UpdateProductView,DeleteaProduct,PaginationApiview,OrderDetails,GetallCategory,GetSpecificProduct,CreateCategory,DeleteCategory,UpdateCategory,Updateuserdata,Deleteuserdata,OrderDetailsBYuser,GetAddressBYUser
+from .views import AdminViewallUser,ViewSpecificUserDetails,CreateProductView,GetallProducts,ViewAllProductbyCategory,UpdateProductView,DeleteaProduct,PaginationApiview,OrderDetails,GetallCategory,GetSpecificProduct,CreateCategory,DeleteCategory,UpdateCategory,Updateuserdata,Deleteuserdata,OrderDetailsBYuser,GetAddressBYUser,Dashboardstats
 from . import views
 urlpatterns = [
    path('AdminViewallUser/',AdminViewallUser.as_view()),
@@ -19,6 +19,6 @@ urlpatterns = [
    path('Updateuserdata/<int:pk>/',Updateuserdata.as_view()),
    path('Deleteuserdata/<int:pk>/',Deleteuserdata.as_view()),
    path('OrderDetailsBYuser/<int:pk>/',OrderDetailsBYuser.as_view()),
-   path('GetAddressBYUser/<int:pk>/',GetAddressBYUser.as_view())
-   
+   path('GetAddressBYUser/<int:pk>/',GetAddressBYUser.as_view()),
+   path('Dashboardstats/',Dashboardstats.as_view())
 ]

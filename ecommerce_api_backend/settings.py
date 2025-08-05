@@ -12,21 +12,26 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+from decouple import config
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
+
 SECRET_KEY = 'django-insecure-o-e)@*m_n(c_ykd&9h7&2u5=pq8tsae-$fda4ig+8l7pdrf(_2'
-
+# SECRET_KEY=config('SECRET_KEY') 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG", cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -48,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'adminuser',
     'drf_yasg',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -94,11 +100,11 @@ WSGI_APPLICATION = 'ecommerce_api_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sevenweek_ecommerce_project',
-        'USER': 'postgres',
-        'PASSWORD': 'muzammil1513',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME'),
+        'USER': config("DB_USER"),
+        'PASSWORD':config("DB_PASSWORD"),
+        'HOST': config("DB_HOST"),
+        'PORT':config("DB_PORT"),
     }
 }
 
@@ -139,6 +145,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -187,13 +194,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #     'USE_SESSION_AUTH': False,
 # }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # For Gmail SMTP server
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'muzammil2332005@gmail.com'  # Replace with your email
-EMAIL_HOST_PASSWORD = 'wgeo dwco bemg eide'  # Replace with your email password or app-specific password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_BACKEND=config("EMAIL_BACKEND")
+EMAIL_HOST=config("EMAIL_HOST")  # For Gmail SMTP server
+EMAIL_PORT=config("EMAIL_PORT", cast=int)
+EMAIL_USE_TLS=config("EMAIL_USE_TLS", cast=bool)
+EMAIL_HOST_USER=config("EMAIL_HOST_USER")  # Replace with your email
+EMAIL_HOST_PASSWORD=config("EMAIL_HOST_PASSWORD")   # Replace with your email password or app-specific password
+DEFAULT_FROM_EMAIL=EMAIL_HOST_USER
 
 
 
@@ -210,9 +217,27 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
 
 
 
-RAZORPAY_KEY_ID="rzp_test_VYiv6q9vw6vBQa"
-RAZORPAY_SECRET_KEY="v8jmR1sIaBVbwe7n4f9XJoU5"
+RAZORPAY_KEY_ID=config("RAZORPAY_KEY_ID")
+RAZORPAY_SECRET_KEY=config("RAZORPAY_SECRET_KEY")
 
 
 # RAZORPAY_KEY_ID = "rzp_test_VYiv6q9vw6vBQa"
 # RAZORPAY_KEY_SECRET = "v8jmR1sIaBVbwe7n4f9XJoU5"
+
+
+
+
+
+
+
+AWS_ACCESS_KEY_ID =config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY=config("AWS_SECRET_ACCESS_KEY") 
+AWS_STORAGE_BUCKET_NAME =config("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_SIGNATURE_NAME =config("AWS_S3_SIGNATURE_NAME")
+AWS_S3_REGION_NAME =config("AWS_S3_REGION_NAME") 
+
+AWS_S3_FILE_OVERWRITE = config("AWS_S3_FILE_OVERWRITE", cast=bool)
+AWS_DEFAULT_ACL = config("AWS_DEFAULT_ACL", default=None)
+AWS_S3_VERIFY = config("AWS_S3_VERIFY", cast=bool)
+
+DEFAULT_FILE_STORAGE=config("DEFAULT_FILE_STORAGE")

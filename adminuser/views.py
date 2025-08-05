@@ -14,6 +14,10 @@ from orders.serialaizer  import OrderDetileserializer
 from orders.models import Orderitem,Orderusre      
 from adminuser.serializer import ProductSerializer,CategorySerializer 
 from authentication.serializer import CustomUserSerializer
+from orders.serialaizer import UseraddressSerializer  
+from  orders.models import Useraddressuser,Useraddress
+from django.db.models import Sum, Avg, Count
+from products.utils import upload_image_to_s3
 # Create your views here.
 
 class AdminViewallUser(APIView):
@@ -35,25 +39,37 @@ class ViewSpecificUserDetails(APIView):
         return Response(serializer.data,status=status.HTTP_302_FOUND) 
     
 
+
 class CreateProductView(APIView):
-    # permission_classes=[IsAdminUser]
-    parser_classes = [MultiPartParser, FormParser]
+    # parser_classes = [MultiPartParser, FormParser]
+
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
-            from_user_data=serializer.validated_data
-            print(from_user_data)
-            # try:
-            #   instence=Category_Gender.objects.get(id=from_user_data['category'])
-            #   print(instence.id)
-            # except Category_Gender.DoesNotExist:
-            #   return Response({'error': 'Category not found.'}, status=status.HTTP_404_NOT_FOUND)
-            ProductData.objects.create(productname=from_user_data['productname'],price=from_user_data['price'],offer_price=from_user_data['offer_price'],item_photo=from_user_data['item_photo'],category_name=from_user_data['category_name'])
-            # product = serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        else:  
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-      
+            data = serializer.validated_data
+
+            image_file = data['item_photo']
+            image_name = image_file.name
+
+            # Upload image to S3
+            image_url = upload_image_to_s3(image_file, image_name)
+            print('image urls is ',image_url)
+            if not image_url:
+                return Response({'error': 'S3 upload failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Create product with image URL from S3
+            product = ProductData.objects.create(
+                productname=data['productname'],
+                price=data['price'],
+                offer_price=data['offer_price'],
+                item_photo=image_url,  # store the URL, not the file
+                category_name=data['category_name']
+            )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
       
 class GetallProducts(APIView):
@@ -253,8 +269,6 @@ class OrderDetailsBYuser(APIView):
         serializer = OrderDetileserializer(data, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
   
-from orders.serialaizer import UseraddressSerializer  
-from  orders.models import Useraddressuser,Useraddress
 
 
 class GetAddressBYUser(APIView):
@@ -271,4 +285,42 @@ class GetAddressBYUser(APIView):
     return Response(serializer.data,status=status.HTTP_200_OK)
   
   
-  
+
+
+class Dashboardstats(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request): 
+        total_sales = ProductData.objects.aggregate(total=Sum('offer_price'))['total'] or 0
+        total_products = ProductData.objects.aggregate(count=Count('id'))['count'] or 0
+        average_price = ProductData.objects.aggregate(avg=Avg('offer_price'))['avg'] or 0
+        total_user = CustomUser.objects.aggregate(total=Count('id'))['total'] or 0
+
+        data = [
+            {
+                "title": "Total Sales",
+                "value": total_sales,
+                "color": "from-purple-500 to-indigo-500",
+                "icon": "🛒"
+            },
+            {
+                "title": "Total Products",
+                "value": total_products,
+                "color": "from-green-500 to-teal-500",
+                "icon": "📦"
+            },
+            {
+                "title": "Average Price",
+                "value": round(average_price, 2),
+                "color": "from-blue-500 to-cyan-500",
+                "icon": "💸"
+            },
+            {
+                "title": "Total Users",
+                "value": total_user,
+                "color": "from-amber-500 to-orange-500",
+                "icon": "👥"
+            }
+        ]
+
+        return Response(data, status=status.HTTP_200_OK)
