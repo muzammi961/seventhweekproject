@@ -41,7 +41,7 @@ class ViewSpecificUserDetails(APIView):
 
 
 class CreateProductView(APIView):
-    # parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -51,13 +51,13 @@ class CreateProductView(APIView):
             image_file = data['item_photo']
             image_name = image_file.name
 
-            # Upload image to S3
+       
             image_url = upload_image_to_s3(image_file, image_name)
             print('image urls is ',image_url)
             if not image_url:
                 return Response({'error': 'S3 upload failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # Create product with image URL from S3
+   
             product = ProductData.objects.create(
                 productname=data['productname'],
                 price=data['price'],
@@ -108,26 +108,45 @@ class DeleteaProduct(APIView):
               
 class UpdateProductView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    # permission_classes=[IsAdminUser]
+
     def put(self, request, pk):
         try:
             product = ProductData.objects.get(pk=pk)
         except ProductData.DoesNotExist:
-            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Product not found"}, 
+                          status=status.HTTP_404_NOT_FOUND)
+            
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, 
+                          status=status.HTTP_400_BAD_REQUEST)
+            
+        data = serializer.validated_data
+        image_url = product.item_photo  # Keep existing if no new image
+        
+        # Handle image update if new image provided
+        if 'item_photo' in data and data['item_photo']:
+            try:
+                image_file = data['item_photo']
+                image_name = image_file.name
+                image_url = upload_image_to_s3(image_file, image_name)
+                if not image_url:
+                    return Response({'error': 'S3 upload failed'},
+                                  status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                return Response({'error': f'Image upload error: {str(e)}'},
+                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        serializer = ProductSerializer(product, data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
-            print(data)
-            product.productname = data.get('productname')
-            product.price = data.get('price')
-            product.offer_price = data.get('offer_price')
-            product.item_photo = data.get('item_photo')
-            product.category_name = data.get('category_name')
-            product.save()
+        # Update product fields
+        product.productname = data.get('productname', product.productname)
+        product.price = data.get('price', product.price)
+        product.offer_price = data.get('offer_price', product.offer_price)
+        product.item_photo = image_url
+        product.category_name = data.get('category_name', product.category_name)
+        product.save()
 
-            return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(ProductSerializer(product).data,
+                      status=status.HTTP_200_OK)
       
       
 

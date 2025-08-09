@@ -50,7 +50,7 @@ class AddProductWishlist(APIView):
             product = ProductData.objects.get(id=product_id)
         except ProductData.DoesNotExist:
             return Response({'message': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
-          
+        
         wishlist_user, created_user = WishListUser.objects.get_or_create(user=user)
         if created_user :
           message1 = "User created inside the wishlist"    
