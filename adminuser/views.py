@@ -82,6 +82,7 @@ class GetallProducts(APIView):
       
 
 class ViewAllProductbyCategory(APIView):
+  
     permission_classes=[IsAdminUser]
     def get(self, request, valuebycategory):
         try:
