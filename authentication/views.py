@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from .models import CustomUser
-# Create your views fhere.
+
 
 class UserRegisteration(APIView):
     permission_classes=[AllowAny]

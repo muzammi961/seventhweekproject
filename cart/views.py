@@ -150,11 +150,15 @@ class DeletetheWishListOneByOne(APIView):
         return Response({'message': 'Wishlist item deleted successfully.'}, status=status.HTTP_200_OK)
             
             
-            
-# class GetCartOneByOne(APIView):
-#     permission_classes=[IsAuthenticated]
-#     def get(self,request,pk):
-#         user=request.user
+# class GetCartdataQuantity(APIView):
+#     permission_classes = [IsAuthenticated]
+#     def get(self, request, pk):
+#         user = request.user
 #         try:
-#             username=
-            
+#             item = ItemCart.objects.get(id=pk, cart__user=user)
+#         except ItemCart.DoesNotExist:
+#             return Response({"error": "Item not found."},status=status.HTTP_404_NOT_FOUND)
+#         serialaizer=ItemCartSerialaizer(item)
+#         if serialaizer:
+#            return Response(serialaizer.data,status=status.HTTP_200_OK)
+#         return Response(status=status.HTTP_400_BAD_REQUEST)

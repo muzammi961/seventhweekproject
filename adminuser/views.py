@@ -18,7 +18,6 @@ from orders.serialaizer import UseraddressSerializer
 from  orders.models import Useraddressuser,Useraddress
 from django.db.models import Sum, Avg, Count
 from products.utils import upload_image_to_s3
-# Create your views here.
 
 class AdminViewallUser(APIView):
   permission_classes=[IsAdminUser]
@@ -62,7 +61,7 @@ class CreateProductView(APIView):
                 productname=data['productname'],
                 price=data['price'],
                 offer_price=data['offer_price'],
-                item_photo=image_url,  # store the URL, not the file
+                item_photo=image_url,  
                 category_name=data['category_name']
             )
 
@@ -124,9 +123,9 @@ class UpdateProductView(APIView):
                           status=status.HTTP_400_BAD_REQUEST)
             
         data = serializer.validated_data
-        image_url = product.item_photo  # Keep existing if no new image
+        image_url = product.item_photo  
         
-        # Handle image update if new image provided
+
         if 'item_photo' in data and data['item_photo']:
             try:
                 image_file = data['item_photo']
@@ -139,7 +138,7 @@ class UpdateProductView(APIView):
                 return Response({'error': f'Image upload error: {str(e)}'},
                              status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Update product fields
+
         product.productname = data.get('productname', product.productname)
         product.price = data.get('price', product.price)
         product.offer_price = data.get('offer_price', product.offer_price)

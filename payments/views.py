@@ -1,5 +1,3 @@
-# ✅ Backend: views.py
-
 import razorpay
 import hmac
 import hashlib
@@ -46,7 +44,7 @@ def create_order(request):
             "key": settings.RAZORPAY_KEY_ID
         })
     except Exception as e:
-        print("💥 ERROR:", str(e))
+        print(" ERROR:", str(e))
         return Response({"error": str(e)}, status=500)
 
 # ////////////////////////////
@@ -65,7 +63,6 @@ def create_order(request):
 
 #         return Response(order)
 #     except Exception as e:
-#         print("💥 ERROR:", e)
 #         return Response({'error': str(e)}, status=500)
 
 
