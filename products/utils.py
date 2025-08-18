@@ -2,7 +2,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from decouple import config
 
-# initialize s3 client 
+
 s3 = boto3.client(
     's3',
     aws_access_key_id='AKIARDAYYYYNYSLU67PQ',
